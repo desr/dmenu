@@ -31,6 +31,7 @@ typedef struct Item Item;
 struct Item {
 	char *text;
 	Item *left, *right;
+	int distance;
 	Bool out;
 };
 
@@ -39,6 +40,7 @@ static void calcoffsets(void);
 static char *cistrstr(const char *s, const char *sub);
 static void cleanup(void);
 static void drawmenu(void);
+static void fuzzymatch(void);
 static void grabkeyboard(void);
 static void insert(const char *str, ssize_t n);
 static void keypress(XKeyEvent *ev);
@@ -288,7 +290,7 @@ insert(const char *str, ssize_t n) {
 	if(n > 0)
 		memcpy(&text[cursor], str, n);
 	cursor += n;
-	match();
+	fuzzymatch();
 }
 
 void
@@ -321,7 +323,7 @@ keypress(XKeyEvent *ev) {
 
 		case XK_k: /* delete right */
 			text[cursor] = '\0';
-			match();
+			fuzzymatch();
 			break;
 		case XK_u: /* delete left */
 			insert(NULL, 0 - cursor);
@@ -454,7 +456,7 @@ keypress(XKeyEvent *ev) {
 		strncpy(text, sel->text, sizeof text - 1);
 		text[sizeof text - 1] = '\0';
 		cursor = strlen(text);
-		match();
+		fuzzymatch();
 		break;
 	}
 	drawmenu();
@@ -656,7 +658,7 @@ setup(void) {
 	}
 	promptw = (prompt && *prompt) ? TEXTW(prompt) : 0;
 	inputw = MIN(inputw, mw/3);
-	match();
+	fuzzymatch();
 
 	/* create menu window */
 	swa.override_redirect = True;
